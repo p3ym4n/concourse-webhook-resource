@@ -10,6 +10,8 @@ jobs:
   tag:
     name: Auto-tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
       new_tag: ${{ steps.tag.outputs.new_tag }}
