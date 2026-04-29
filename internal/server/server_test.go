@@ -68,7 +68,9 @@ func listPayloads(t *testing.T, serverURL, token, after string) []*models.Webhoo
 		t.Fatalf("GET /api/payloads: unexpected status %d", resp.StatusCode)
 	}
 	var payloads []*models.WebhookPayload
-	json.NewDecoder(resp.Body).Decode(&payloads)
+	if err := json.NewDecoder(resp.Body).Decode(&payloads); err != nil {
+		t.Fatalf("decoding payloads: %v", err)
+	}
 	return payloads
 }
 
@@ -198,7 +200,9 @@ func TestListPayloadsAfterTimestamp(t *testing.T) {
 			Timestamp: base.Add(time.Duration(i) * time.Minute).Format(time.RFC3339Nano),
 			Body:      map[string]interface{}{"i": i},
 		}
-		store.Save(p)
+		if err := store.Save(p); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	pivot := base.Add(1 * time.Minute).Format(time.RFC3339Nano)
@@ -228,7 +232,9 @@ func TestGetPayload(t *testing.T) {
 	defer resp.Body.Close()
 
 	var created map[string]string
-	json.NewDecoder(resp.Body).Decode(&created)
+	if err := json.NewDecoder(resp.Body).Decode(&created); err != nil {
+		t.Fatalf("decoding response: %v", err)
+	}
 	id := created["id"]
 
 	req, _ := http.NewRequest(http.MethodGet, ts.URL+"/api/payloads/"+id, nil)
@@ -239,7 +245,9 @@ func TestGetPayload(t *testing.T) {
 	defer getResp.Body.Close()
 
 	var payload models.WebhookPayload
-	json.NewDecoder(getResp.Body).Decode(&payload)
+	if err := json.NewDecoder(getResp.Body).Decode(&payload); err != nil {
+		t.Fatalf("decoding payload: %v", err)
+	}
 	if payload.ID != id {
 		t.Errorf("expected payload ID %q, got %q", id, payload.ID)
 	}
@@ -259,7 +267,9 @@ func TestDeletePayload(t *testing.T) {
 	defer resp.Body.Close()
 
 	var created map[string]string
-	json.NewDecoder(resp.Body).Decode(&created)
+	if err := json.NewDecoder(resp.Body).Decode(&created); err != nil {
+		t.Fatalf("decoding response: %v", err)
+	}
 	id := created["id"]
 
 	req, _ := http.NewRequest(http.MethodDelete, ts.URL+"/api/payloads/"+id, nil)
